@@ -1,30 +1,29 @@
-pipeline {
-    agent any
-    
+pipeline{
+    agent{
+        label{
+            label "slave-ssh"
+            customWorkspace "/opt/github"
+        }
+    }
     stages{
-        stage("Code"){
+        stage("git clone"){
             steps{
-                git url: "https://github.com/LondheShubham153/two-tier-flask-app.git", branch: "jenkins"
+                sh "git clone https://github.com/gk-aws-dev/Project-Two_tier_flask_app_on_docker.git"
             }
         }
-        stage("Build & Test"){
+        stage("docker-compose"){
             steps{
-                sh "docker build . -t flaskapp"
-            }
-        }
-        stage("Push to DockerHub"){
-            steps{
-                withCredentials([usernamePassword(credentialsId:"dockerHub",passwordVariable:"dockerHubPass",usernameVariable:"dockerHubUser")]){
-                    sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"
-                    sh "docker tag flaskapp ${env.dockerHubUser}/flaskapp:latest"
-                    sh "docker push ${env.dockerHubUser}/flaskapp:latest" 
+                dir("/opt/github/Project-Two_tier_flask_app_on_docker"){
+                    sh "docker-compose up -d"
                 }
             }
         }
-        stage("Deploy"){
+            stage("Push to DockerHub"){
             steps{
-                sh "docker-compose down && docker-compose up -d"
+                // generate the script for the dockerhub nd push the image into dockerhub
+                //sh "docker tag <image-name>:latest <username>/<latest>
+               // sh "docker push <username>/<iamge-name>:latest"
+                }
             }
-        }
     }
 }
